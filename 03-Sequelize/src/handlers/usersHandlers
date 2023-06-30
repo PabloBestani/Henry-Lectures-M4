@@ -1,0 +1,93 @@
+const {User, Post} = require("../db");
+
+
+const getUsersHandler = async (req, res) => {
+    const {name} = req.query;
+
+
+    try {
+        if (name) {
+            const response = await User.findOne({where: {name: name}});
+            return res.status(200).json(response);
+        }
+
+
+        const response = await User.findAll();
+        //*tambien podria ser findAll con una condicion
+        // const response = await User.findAll({where: {edad: edad>25}});
+        return res.status(200).json(response);
+    } catch (error) {
+        res.status(400).json({error: error.message});
+    };
+
+}
+
+const getDetailHandler = async (req, res) => {
+    const {id} = req.params;
+
+    try {
+
+        const response = await User.findByPk(id, 
+            {include: 
+                {
+                    model: Post, 
+                    attributes: ["title", "body"]
+                }
+            }
+        );
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(400).json({error: error.message});
+    };
+
+
+
+}
+
+const createUserHandler = async (req, res) => {
+    const {name, email} = req.body;
+    try {
+        const response = await User.create({name, email});
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(400).json({error: error.message});
+    };
+
+};
+
+
+
+const updateHandler = async (req, res) => {
+    const {newMail, email} = req.body;
+
+    try {
+        await User.update(
+            {email: newMail}, 
+            {where: {email: email}}
+            );
+        res.status(200).json({success: "El correo se actualizo con exito"});
+    } catch (error) {
+        res.status(400).json({error: error.message});
+    };
+}
+
+
+const deleteHandler = async(req, res) => {
+    const {id} = req.params;
+
+    try {
+        await User.destroy({where: {id: id}});
+        res.status(200).json({success: "El usuario se elimino con exito"});
+    } catch (error) {
+        res.status(400).json({error: error.message});
+    };
+}
+
+
+module.exports = {
+    getUsersHandler,
+    getDetailHandler,
+    createUserHandler,
+    updateHandler,
+    deleteHandler,
+}
